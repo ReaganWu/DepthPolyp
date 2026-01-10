@@ -13,13 +13,14 @@ from torch.optim import Adam
 from setup.data_loader import get_dataloader, set_seed
 from trainer import train_model_endo_depth
 from model.depthpolyp import build_depthpolyp
-from setup.losses import uncertainty_weighted_loss
+from setup.losses import UncertaintyWeightedLoss
 
 set_seed()
 DEVICE = 'cuda:0'
 EPOCHS = 200
+BATCH_SIZE = 16
 
-train_dataset_loader, val_dataset_loader, dataset_name = get_dataloader(dataset_name='KVASIR-v2', batch_size=batch_size, shuffle=True)
+train_dataset_loader, val_dataset_loader, dataset_name = get_dataloader(dataset_name='KVASIR-v2', batch_size=BATCH_SIZE, shuffle=True)
 # train_dataloader2, val_dataloader2, dataset_name = get_dataloader(dataset_name='ClinicDB-v2', batch_size=8, shuffle=True)=
 # train_dataloader3, val_dataloader3, dataset_name = get_dataloader(dataset_name='ColonDB-v2', batch_size=16, shuffle=True)
 
@@ -34,6 +35,7 @@ model = build_depthpolyp(
     decoder_channels=256,
     activation=None,
 )
+model.to(DEVICE)
 
 def lambda_setup(epoch, warmup_epochs=EPOCHS//10, cosine_epochs=EPOCHS, eta_min=5e-7): 
     if epoch < warmup_epochs:
@@ -41,7 +43,7 @@ def lambda_setup(epoch, warmup_epochs=EPOCHS//10, cosine_epochs=EPOCHS, eta_min=
     else:
         return 0.5 * (math.cos((epoch - warmup_epochs) / (cosine_epochs - warmup_epochs) * math.pi) + 1) * (1 - eta_min) + eta_min
 
-uncertainty_weighted_loss = uncertainty_weighted_loss()
+uncertainty_weighted_loss = UncertaintyWeightedLoss().to(DEVICE)
 
 opt = Adam(
    list(model.parameters()),
@@ -66,5 +68,5 @@ scheduler_name = scheduler.__class__.__name__
 model_full_name = f"{dataset_name}_DepthPolpy_{learningrate:.0e}_{opt_name}_{scheduler_name}_woUncertainty"
 print(model_full_name)
 
-train_model_endo_depth(model_full_name, model, train_dataset_loader, val_dataset_loader, uncertainty_weighted_loss, opt, scheduler, num_ep, task=TASK, mode=MODE)
+train_model_endo_depth(model_full_name, model, train_dataset_loader, val_dataset_loader, uncertainty_weighted_loss, opt, scheduler, EPOCHS)
 

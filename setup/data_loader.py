@@ -1,4 +1,5 @@
 import os
+os.environ['NO_ALBUMENTATIONS_UPDATE'] = '1'
 import numpy as np
 import glob
 import random
@@ -7,7 +8,7 @@ from PIL import Image
 import albumentations as Aug
 from sklearn.model_selection import train_test_split
 from torch.utils.data import Dataset, DataLoader, Subset
-from dataloader.random_lightspot import AddLightSpots
+from setup.random_lightspot import AddLightSpots
 
 
 # GLOBAL Config
@@ -195,8 +196,8 @@ def get_dataloader(dataset_name, batch_size=32, shuffle=True, num_workers=30):
             AddLightSpots(radius_range=(5, 40), intensity=0.85, num_spots=1, always_apply=False, p=0.8),  # add light spots
         ], p=1.0)
         
-        images_path = "/YOUR_PATHWAY/Kvasir-SEG/images/*"
-        masks_path = "/YOUR_PATHWAY//Kvasir-SEG/masks/*"
+        images_path = "/home/wangqj/workspace/endo/endoscope/dataset/Kvasir-SEG/images/*"
+        masks_path = "/home/wangqj/workspace/endo/endoscope/dataset/Kvasir-SEG/masks/*"
         
         images = glob.glob(images_path)
         masks = glob.glob(masks_path)
@@ -236,8 +237,8 @@ def get_dataloader(dataset_name, batch_size=32, shuffle=True, num_workers=30):
             AddLightSpots(radius_range=(5, 40), intensity=0.85, num_spots=1, always_apply=False, p=0.8),  # add light spots
         ], p=1.0)
         
-        images_path = "/YOUR_PATHWAY/CVC-ColonDB/images/*"
-        masks_path = "/YOUR_PATHWAY/CVC-ColonDB/masks/*"
+        images_path = "/home/wuzy/DATASET/CVC-ColonDB/images/*"
+        masks_path = "/home/wuzy/DATASET/CVC-ColonDB/masks/*"
         
         images = glob.glob(images_path)
         masks = glob.glob(masks_path)
@@ -277,8 +278,8 @@ def get_dataloader(dataset_name, batch_size=32, shuffle=True, num_workers=30):
             AddLightSpots(radius_range=(5, 40), intensity=0.85, num_spots=1, always_apply=False, p=0.8),  # add light spots
         ], p=1.0)
         
-        images_path = "/YOUR_PATHWAY/ClinicDB/PNG/Original/*"
-        masks_path = "/YOUR_PATHWAY/ClinicDB/PNG/GroundTruth/*"
+        images_path = "/home/wuzy/DATASET/ClinicDB/PNG/Original/*"
+        masks_path = "/home/wuzy/DATASET/ClinicDB/PNG/GroundTruth/*"
         
         images = glob.glob(images_path)
         masks = glob.glob(masks_path)
@@ -311,7 +312,7 @@ def get_dataloader(dataset_name, batch_size=32, shuffle=True, num_workers=30):
         selected_seqs = ['seq18', 'seq19', 'seq20', 'seq21', 'seq22']
 
         polypgen_dataset = PolypGenDataset(
-            root_dir="/YOUR_PATHWAY/polypgen",
+            root_dir="/home/wuzy/DATASET/polypgen",
             transform=test_transform,
             blurring_transform=None,  # 如果不需要模糊测试，设为 None
             selected_sequences=selected_seqs  # 只加载这些序列

@@ -75,16 +75,11 @@ def train_model_endo_depth(
     optimizer,
     lr_scheduler,
     num_epochs,
-    task,
-    mode
 ):
-    print(f"[INFO] Initializing model: {model_name}, Mode: {mode}")
-
-    if mode not in ["icpr_train_on_clean", "icpr_train_on_blur"]:
-        raise ValueError(f"Unknown training mode: {mode}")
+    print(f"[INFO] Initializing model: {model_name}")\
 
     timestamp = datetime.datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
-    model_saved_dir = os.path.join(PT_SAVED_DIR, task, mode, model_name)
+    model_saved_dir = os.path.join(PT_SAVED_DIR, model_name)
     os.makedirs(model_saved_dir, exist_ok=True)
 
     model_save_path = os.path.join(model_saved_dir, f"{model_name}_{timestamp}.pth")
@@ -110,8 +105,7 @@ def train_model_endo_depth(
         print(f"\n========== Epoch [{epoch}/{num_epochs}] ==========")
 
         for i_step, (blur_data, clean_data, target_seg) in enumerate(tqdm(train_loader)):
-            data = clean_data if mode == "icpr_train_on_clean" else blur_data
-
+            data = blur_data
             data = data.to(DEVICE).permute(0, 3, 1, 2) / 255.0
             target = target_seg.to(DEVICE).permute(0, 3, 1, 2) / 255.0
 

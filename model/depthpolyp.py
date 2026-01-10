@@ -1,9 +1,9 @@
 import torch
 import torch.nn as nn
 
-from modules.HF_Decoder import HiF_Decoder
-from modules.MiT_Encoder import MixVisionTransformer
-from modules.Seg_Head import SegmentationHead
+from .modules.HF_Decoder import HiF_Decoder
+from .modules.MiT_Encoder import MixVisionTransformer
+from .modules.Seg_Head import SegmentationHead
 
 class DepthPolyp(nn.Module):
     def __init__(
