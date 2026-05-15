@@ -96,7 +96,7 @@ class DepthPolyp(nn.Module):
             upsampling=upsampling,
         )
 
-        self.name = f"segformer-{encoder_name}"
+        self.name = f"DepthPolyp-{encoder_name}"
 
     def forward(self, x):
         """Forward pass
@@ -218,4 +218,3 @@ if __name__ == '__main__':
     print("input_shape is:", dummy_input.shape)
     print("output_seg shape is:", output_seg.shape)
     print("output_depth shape is:", output_depth.shape)
-
