@@ -300,9 +300,6 @@ DepthPolyp/
 }
 ```
 
-## Acknowledgements
-
-This release follows the public repository style of [EndoCaver](https://github.com/ReaganWu/EndoCaver) and [RT-Focuser](https://github.com/ReaganWu/RT-Focuser). Thanks to the public polyp segmentation datasets used by the community.
 
 ## License
 
