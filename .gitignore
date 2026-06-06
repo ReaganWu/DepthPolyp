@@ -173,6 +173,12 @@ cython_debug/
 # PyPI configuration file
 .pypirc
 
+# Hugging Face release staging folders
+hf_release/
+hf_release_test/
+hf_space_release/
+hf_space_release_test/
+
 # Cursor  
 #  Cursor is an AI-powered code editor.`.cursorignore` specifies files/directories to 
 #  exclude from AI features like autocomplete and code analysis. Recommended for sensitive data

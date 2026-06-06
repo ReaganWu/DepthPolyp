@@ -2,6 +2,8 @@
 
 [![Paper](https://img.shields.io/badge/Paper-ICPR%202026-blue)](#citation)
 [![ONNX](https://img.shields.io/badge/ONNX-Runtime-orange)](#checkpoint-and-onnx-artifacts)
+[![Hugging Face Model](https://img.shields.io/badge/🤗%20Model-DepthPolyp-yellow)](https://huggingface.co/ReaganWZY/DepthPolyp)
+[![Hugging Face Demo](https://img.shields.io/badge/🤗%20Demo-CPU%20Space-yellow)](https://huggingface.co/spaces/ReaganWZY/DepthPolyp-demo)
 [![License](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
 
 **Official PyTorch implementation of DepthPolyp (ICPR 2026)**
@@ -173,6 +175,23 @@ Export the PyTorch checkpoint to ONNX:
 python scripts/export_onnx.py \
   --checkpoint checkpoints/DepthPolyp_Kvasir.pth \
   --output checkpoints/DepthPolyp_Kvasir.onnx
+```
+
+## Hugging Face
+
+DepthPolyp is also available on Hugging Face:
+
+- Model repository: https://huggingface.co/ReaganWZY/DepthPolyp
+- Demo Space: https://huggingface.co/spaces/ReaganWZY/DepthPolyp-demo
+
+Download the released PyTorch and ONNX checkpoints with `huggingface_hub`:
+
+```python
+from huggingface_hub import hf_hub_download
+
+repo_id = "ReaganWZY/DepthPolyp"
+pth_path = hf_hub_download(repo_id=repo_id, filename="DepthPolyp_Kvasir.pth")
+onnx_path = hf_hub_download(repo_id=repo_id, filename="DepthPolyp_Kvasir.onnx")
 ```
 
 ## Model usage
