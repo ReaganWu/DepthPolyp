@@ -1,7 +1,7 @@
 # DepthPolyp: Pseudo-Depth Guided Lightweight Segmentation for Real-Time Colonoscopy
 
-[![Paper](https://img.shields.io/badge/Paper-ICPR%202026-blue)](#citation)
-[![ONNX](https://img.shields.io/badge/ONNX-Runtime-orange)](#checkpoint-and-onnx-artifacts)
+[![Paper](https://img.shields.io/badge/Paper-ICPR%202026-blue)](https://arxiv.org/html/2605.16519v1)
+[![ONNX](https://img.shields.io/badge/ONNX-Runtime-orange)](https://github.com/ReaganWu/DepthPolyp/tree/main/checkpoints)
 [![Hugging Face Model](https://img.shields.io/badge/🤗%20Model-DepthPolyp-yellow)](https://huggingface.co/ReaganWZY/DepthPolyp)
 [![Hugging Face Demo](https://img.shields.io/badge/🤗%20Demo-CPU%20Space-yellow)](https://huggingface.co/spaces/ReaganWZY/DepthPolyp-demo)
 [![License](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
