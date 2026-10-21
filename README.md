@@ -1,16 +1,33 @@
-# DepthPolyp: Pseudo-Depth Guided Lightweight Segmentation for Real-Time Colonoscopy
+<div align="center">
+
+# DepthPolyp
+
+### Pseudo-Depth Guided Lightweight Segmentation for Real-Time Colonoscopy
+
+**Official PyTorch implementation · ICPR 2026**
 
 [![Paper](https://img.shields.io/badge/Paper-ICPR%202026-blue)](https://arxiv.org/html/2605.16519v1)
 [![ONNX](https://img.shields.io/badge/ONNX-Runtime-orange)](https://github.com/ReaganWu/DepthPolyp/tree/main/checkpoints)
 [![Hugging Face Model](https://img.shields.io/badge/🤗%20Model-DepthPolyp-yellow)](https://huggingface.co/ReaganWZY/DepthPolyp)
 [![Hugging Face Demo](https://img.shields.io/badge/🤗%20Demo-CPU%20Space-yellow)](https://huggingface.co/spaces/ReaganWZY/DepthPolyp-demo)
+[![iOS Demo](https://img.shields.io/badge/iOS-Dense%20FP16-111111?logo=apple&logoColor=white)](https://github.com/ReaganWu/DepthPolyp-iOS)
 [![License](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
 
-**Official PyTorch implementation of DepthPolyp (ICPR 2026)**
+Zhuoyu Wu, Wenhui Ou, Lexi Zhang, Pei-Sze Tan, Dongjun Wu, Junhe Zhao, Wenqi Fang, and Raphaël C.-W. Phan
 
-> **DepthPolyp: Pseudo-Depth Guided Lightweight Segmentation for Real-Time Colonoscopy**
->
-> Zhuoyu Wu, Wenhui Ou, Lexi Zhang, Pei-Sze Tan, Dongjun Wu, Junhe Zhao, Wenqi Fang, and Raphaël C.-W. Phan
+[Paper](https://arxiv.org/html/2605.16519v1) · [Model weights](https://huggingface.co/ReaganWZY/DepthPolyp) · [Online demo](https://huggingface.co/spaces/ReaganWZY/DepthPolyp-demo) · [iPhone demo](https://github.com/ReaganWu/DepthPolyp-iOS)
+
+</div>
+
+## News
+
+- **2026-10-21 · iOS demo released.** [DepthPolyp-iOS](https://github.com/ReaganWu/DepthPolyp-iOS) is now open source! The release includes a **dense FP16 Core ML model (unquantized and unpruned)** and a SwiftUI iPhone app for camera inference, segmentation overlays, relative depth visualization, and timing. [Get started on iPhone →](https://github.com/ReaganWu/DepthPolyp-iOS#run)
+
+---
+
+[Overview](#overview) · [Results](#qualitative-results) · [Installation](#installation) · [Inference](#quick-inference) · [Evaluation](#evaluation) · [Citation](#citation)
+
+## Overview
 
 DepthPolyp is a pseudo-depth guided lightweight polyp segmentation model for practical colonoscopy deployment. Given a colonoscopy frame, the model jointly predicts:
 
@@ -21,34 +38,34 @@ The depth branch improves robustness under blur, noise, and real-world video deg
 
 ## Qualitative results
 
-PolypGen sequence examples:
+**PolypGen video sequences**
 
 <p align="center">
-  <img src="assets/seq19.gif" width="46%">
-  <img src="assets/seq22.gif" width="46%">
+  <img src="assets/seq19.gif" width="46%" alt="DepthPolyp predictions on PolypGen sequence 19">
+  <img src="assets/seq22.gif" width="46%" alt="DepthPolyp predictions on PolypGen sequence 22">
 </p>
 
-Kvasir sample outputs:
+**Kvasir-SEG examples** — input image · segmentation mask · pseudo-depth
 
 <p align="center">
-  <img src="samples/kvasir/images/sample_01.jpg" width="30%">
-  <img src="samples/kvasir/outputs/masks/sample_01.png" width="30%">
-  <img src="samples/kvasir/outputs/depth/sample_01.png" width="30%">
+  <img src="samples/kvasir/images/sample_01.jpg" width="30%" alt="Input image, Kvasir sample 01">
+  <img src="samples/kvasir/outputs/masks/sample_01.png" width="30%" alt="Segmentation mask, Kvasir sample 01">
+  <img src="samples/kvasir/outputs/depth/sample_01.png" width="30%" alt="Pseudo-depth prediction, Kvasir sample 01">
 </p>
 
 <p align="center">
-  <img src="samples/kvasir/images/sample_02.jpg" width="30%">
-  <img src="samples/kvasir/outputs/masks/sample_02.png" width="30%">
-  <img src="samples/kvasir/outputs/depth/sample_02.png" width="30%">
+  <img src="samples/kvasir/images/sample_02.jpg" width="30%" alt="Input image, Kvasir sample 02">
+  <img src="samples/kvasir/outputs/masks/sample_02.png" width="30%" alt="Segmentation mask, Kvasir sample 02">
+  <img src="samples/kvasir/outputs/depth/sample_02.png" width="30%" alt="Pseudo-depth prediction, Kvasir sample 02">
 </p>
 
 ## Highlights
 
 - Pseudo-depth guided segmentation for robust colonoscopy analysis
 - Lightweight MiT-B0 based design with 3.57M parameters
-- 0.86 GMACs at 224 x 224 input resolution
+- 0.86 GMACs at 224 × 224 input resolution
 - Joint segmentation and depth prediction in one forward pass
-- ONNX Runtime inference script for direct deployment checks
+- **Deployment:** ONNX Runtime inference and a dedicated [iPhone Core ML demo](https://github.com/ReaganWu/DepthPolyp-iOS)
 - Degradation-aware training for noisy and blurred endoscopic frames
 
 DepthPolyp combines:
@@ -61,17 +78,14 @@ DepthPolyp combines:
 ## Architecture
 
 <p align="center">
-  <img src="assets/depthpolyp_architecture.png" width="100%">
+  <img src="assets/depthpolyp_architecture.png" width="100%" alt="DepthPolyp architecture with segmentation and pseudo-depth prediction branches">
 </p>
 
-Paper-reported reference numbers:
+**Paper-reported reference numbers**
 
-- Parameters: 3.57M
-- Complexity: 0.86 GMACs
-- Average Dice: 0.779 under the noisy evaluation protocol
-- PolypGen Dice: 0.679
-- iPhone FPS: 181.54
-- Raspberry Pi 4 FPS: 4.05
+| Parameters | Complexity | Avg. Dice (`N→N`) | PolypGen Dice | iPhone FPS | Raspberry Pi 4 FPS |
+| ---: | ---: | ---: | ---: | ---: | ---: |
+| **3.57M** | **0.86 GMACs** | **0.779** | **0.679** | **181.54** | **4.05** |
 
 ## Installation
 
@@ -101,7 +115,7 @@ Pseudo-depth targets are generated using Depth-Anything v2 Small and used only d
 
 Paper training settings:
 
-- Input resolution: 224 x 224
+- Input resolution: 224 × 224
 - Encoder: MiT-B0
 - Epochs: 200
 - Optimizer: AdamW
@@ -138,12 +152,12 @@ The names follow the public model description:
 - MiT-B0 encoder
 - pseudo-depth guided segmentation
 - Kvasir-SEG reference weights
-- 224 x 224 input resolution
+- 224 × 224 input resolution
 
 | Model | Format | Training data | Input | Notes |
 | --- | --- | --- | --- | --- |
-| `checkpoints/DepthPolyp_Kvasir.pth` | PyTorch | Kvasir-SEG with degradation-aware training | 224 x 224 | Released checkpoint |
-| `checkpoints/DepthPolyp_Kvasir.onnx` | ONNX | Kvasir-SEG with degradation-aware training | 224 x 224 | Ready for ONNX Runtime |
+| `checkpoints/DepthPolyp_Kvasir.pth` | PyTorch | Kvasir-SEG with degradation-aware training | 224 × 224 | Released checkpoint |
+| `checkpoints/DepthPolyp_Kvasir.onnx` | ONNX | Kvasir-SEG with degradation-aware training | 224 × 224 | Ready for ONNX Runtime |
 
 ONNX I/O names:
 
@@ -177,12 +191,15 @@ python scripts/export_onnx.py \
   --output checkpoints/DepthPolyp_Kvasir.onnx
 ```
 
-## Hugging Face
+## Models and demos
 
-DepthPolyp is also available on Hugging Face:
+Download the model weights, try the online demo, or run DepthPolyp on iPhone:
 
-- Model repository: https://huggingface.co/ReaganWZY/DepthPolyp
-- Demo Space: https://huggingface.co/spaces/ReaganWZY/DepthPolyp-demo
+| Resource | Link |
+| --- | --- |
+| Model weights | [DepthPolyp on Hugging Face](https://huggingface.co/ReaganWZY/DepthPolyp) |
+| Interactive CPU demo | [Try the demo Space](https://huggingface.co/spaces/ReaganWZY/DepthPolyp-demo) |
+| Native iPhone demo | [DepthPolyp-iOS · dense FP16 Core ML](https://github.com/ReaganWu/DepthPolyp-iOS) |
 
 Download the released PyTorch and ONNX checkpoints with `huggingface_hub`:
 
@@ -319,7 +336,6 @@ DepthPolyp/
 }
 ```
 
-
 ## License
 
-This project is released under the MIT License. See `LICENSE`.
+This project is released under the [MIT License](LICENSE).

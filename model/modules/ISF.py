@@ -20,10 +20,10 @@ class GroupChannelShuffle(nn.Module):
         assert C % g == 0, f"channels {C} not divisible by groups {g}"
         gc = C // g
         # reshape to (B, groups, group_channels, H, W)
-        x = x.view(B, g, gc, H, W)
+        x = x.reshape(B, g, gc, H, W)
         # transpose to interleave: (B, group_channels, groups, H, W)
         x = x.transpose(1, 2).contiguous()
-        x = x.view(B, C, H, W)
+        x = x.reshape(B, C, H, W)
         # optional cyclic rotate by percent of channels (deterministic)
         if self.cyclic_percent and 0 < self.cyclic_percent < 1.0:
             shift = int(C * self.cyclic_percent)
@@ -68,11 +68,10 @@ class ISF_Module(nn.Module):
         # 3) group-wise scaling
         gc = C // self.groups
         # scale = self.group_scale.repeat_interleave(gc).view(1, C, 1, 1)  # (1, C, 1, 1)
-        scale = self.group_scale.to(x.device)  
-        scale = scale.repeat_interleave(gc).view(1, C, 1, 1)
+        scale = self.group_scale.to(x.device).view(1, self.groups, 1, 1, 1)
+        scale = scale.expand(1, self.groups, gc, 1, 1).reshape(1, C, 1, 1)
         y = y * scale
 
         # 4) residual add to preserve original information
         out = x + y
         return out
-

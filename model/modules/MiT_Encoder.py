@@ -71,9 +71,9 @@ class LayerNorm(nn.LayerNorm):
     def forward(self, x: torch.Tensor) -> torch.Tensor:
         if x.ndim == 4:
             batch_size, channels, height, width = x.shape
-            x = x.view(batch_size, channels, -1).transpose(1, 2)
+            x = x.reshape(batch_size, channels, -1).transpose(1, 2)
             x = F.layer_norm(x, self.normalized_shape, self.weight, self.bias, self.eps)
-            x = x.transpose(1, 2).view(batch_size, channels, height, width)
+            x = x.transpose(1, 2).reshape(batch_size, channels, height, width)
         else:
             x = F.layer_norm(x, self.normalized_shape, self.weight, self.bias, self.eps)
         return x
@@ -87,7 +87,7 @@ class DWConv(nn.Module):
 
     def forward(self, x: torch.Tensor, height: int, width: int) -> torch.Tensor:
         batch_size, _, channels = x.shape
-        x = x.transpose(1, 2).view(batch_size, channels, height, width)
+        x = x.transpose(1, 2).reshape(batch_size, channels, height, width)
         x = self.dwconv(x)
         x = x.flatten(2).transpose(1, 2)
         return x
@@ -284,7 +284,7 @@ class Block(nn.Module):
         x = x.flatten(2).transpose(1, 2)
         x = x + self.drop_path(self.attn(self.norm1(x), height, width))
         x = x + self.drop_path(self.mlp(self.norm2(x), height, width))
-        x = x.transpose(1, 2).view(batch_size, -1, height, width)
+        x = x.transpose(1, 2).reshape(batch_size, -1, height, width)
         return x
 
 

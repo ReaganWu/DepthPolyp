@@ -12,9 +12,9 @@ class DGG_Module(nn.Module):
         B, C, H, W = x.shape
         gc = C // self.groups
 
-        xg = x.view(B, self.groups, gc, H, W).mean(dim=(2,3,4))  # (B, groups)
+        xg = x.reshape(B, self.groups, gc, H, W).mean(dim=(2,3,4))  # (B, groups)
         gates = torch.sigmoid(self.fc(xg))[:, :, None, None, None]  # (B, groups, 1, 1, 1)
 
-        xg = x.view(B, self.groups, gc, H, W)
+        xg = x.reshape(B, self.groups, gc, H, W)
         out = (xg * gates).reshape(B, C, H, W)
         return out
