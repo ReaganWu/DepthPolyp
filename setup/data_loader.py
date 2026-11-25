@@ -19,6 +19,43 @@ IMG_HEIGHT = IMG_WIDTH
 IMG_CHANNELS = 3
 BATCH_SIZE = 16
 
+IMAGE_SUFFIXES = {".jpg", ".jpeg", ".png", ".bmp", ".tif", ".tiff"}
+SPLITS_DIR = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "splits")
+
+
+def _list_images(directory):
+    """Sorted image paths, so the split does not depend on filesystem order."""
+    return sorted(
+        os.path.join(directory, f) for f in os.listdir(directory)
+        if os.path.splitext(f)[1].lower() in IMAGE_SUFFIXES
+    )
+
+
+def paired_split(images_dir, masks_dir, split_name=None, test_size=0.2, random_state=42):
+    """Pair images and masks by file stem and split them 80/20.
+
+    If ``splits/<split_name>_val.txt`` exists, the file names listed there form
+    the validation set and every other pair goes to training. Otherwise the
+    sorted pairs are split with ``train_test_split(random_state=42)``, which
+    gives the same split as ``scripts/evaluate_depthpolyp.py --split val``.
+    """
+    masks = {os.path.splitext(os.path.basename(m))[0]: m for m in _list_images(masks_dir)}
+    pairs = []
+    for img in _list_images(images_dir):
+        stem = os.path.splitext(os.path.basename(img))[0]
+        if stem in masks:
+            pairs.append((img, masks[stem]))
+
+    split_file = os.path.join(SPLITS_DIR, f"{split_name}_val.txt") if split_name else None
+    if split_file and os.path.isfile(split_file):
+        with open(split_file) as f:
+            val_names = {line.strip() for line in f if line.strip()}
+        train_data = [p for p in pairs if os.path.basename(p[0]) not in val_names]
+        val_data = [p for p in pairs if os.path.basename(p[0]) in val_names]
+        return train_data, val_data
+    return train_test_split(pairs, test_size=test_size, random_state=random_state)
+
+
 def set_seed(seed=42):
     """fixed seed"""
     random.seed(seed)
@@ -196,14 +233,10 @@ def get_dataloader(dataset_name, batch_size=32, shuffle=True, num_workers=30):
             AddLightSpots(radius_range=(5, 40), intensity=0.85, num_spots=1, always_apply=False, p=0.8),  # add light spots
         ], p=1.0)
         
-        images_path = "/home/wangqj/workspace/endo/endoscope/dataset/Kvasir-SEG/images/*"
-        masks_path = "/home/wangqj/workspace/endo/endoscope/dataset/Kvasir-SEG/masks/*"
-        
-        images = glob.glob(images_path)
-        masks = glob.glob(masks_path)
-        
-        kvasir_data = [(img, mask) for img, mask in zip(images,masks)]
-        train_data, val_data = train_test_split(kvasir_data, test_size=0.2, random_state=42)
+        images_dir = "/home/wangqj/workspace/endo/endoscope/dataset/Kvasir-SEG/images"
+        masks_dir = "/home/wangqj/workspace/endo/endoscope/dataset/Kvasir-SEG/masks"
+
+        train_data, val_data = paired_split(images_dir, masks_dir, split_name="kvasir", test_size=0.2, random_state=42)
         
         train_dataset = KvasirDataset_v2(data=train_data, albumentations_transform=albumentations_transform, blurring_transform=blurring_transform)
         val_dataset = KvasirDataset_v2(data=val_data, albumentations_transform=validation_transform, blurring_transform=blurring_transform)
@@ -237,14 +270,10 @@ def get_dataloader(dataset_name, batch_size=32, shuffle=True, num_workers=30):
             AddLightSpots(radius_range=(5, 40), intensity=0.85, num_spots=1, always_apply=False, p=0.8),  # add light spots
         ], p=1.0)
         
-        images_path = "/home/wuzy/DATASET/CVC-ColonDB/images/*"
-        masks_path = "/home/wuzy/DATASET/CVC-ColonDB/masks/*"
-        
-        images = glob.glob(images_path)
-        masks = glob.glob(masks_path)
-        
-        kvasir_data = [(img, mask) for img, mask in zip(images,masks)]
-        train_data, val_data = train_test_split(kvasir_data, test_size=0.2, random_state=42)
+        images_dir = "/home/wuzy/DATASET/CVC-ColonDB/images"
+        masks_dir = "/home/wuzy/DATASET/CVC-ColonDB/masks"
+
+        train_data, val_data = paired_split(images_dir, masks_dir, split_name="colondb", test_size=0.2, random_state=42)
         
         train_dataset = KvasirDataset_v2(data=train_data, albumentations_transform=albumentations_transform, blurring_transform=blurring_transform)
         val_dataset = KvasirDataset_v2(data=val_data, albumentations_transform=validation_transform, blurring_transform=blurring_transform)
@@ -278,14 +307,10 @@ def get_dataloader(dataset_name, batch_size=32, shuffle=True, num_workers=30):
             AddLightSpots(radius_range=(5, 40), intensity=0.85, num_spots=1, always_apply=False, p=0.8),  # add light spots
         ], p=1.0)
         
-        images_path = "/home/wuzy/DATASET/ClinicDB/PNG/Original/*"
-        masks_path = "/home/wuzy/DATASET/ClinicDB/PNG/GroundTruth/*"
-        
-        images = glob.glob(images_path)
-        masks = glob.glob(masks_path)
-        
-        kvasir_data = [(img, mask) for img, mask in zip(images,masks)]
-        train_data, val_data = train_test_split(kvasir_data, test_size=0.2, random_state=42)
+        images_dir = "/home/wuzy/DATASET/ClinicDB/PNG/Original"
+        masks_dir = "/home/wuzy/DATASET/ClinicDB/PNG/GroundTruth"
+
+        train_data, val_data = paired_split(images_dir, masks_dir, split_name="clinicdb", test_size=0.2, random_state=42)
         
         train_dataset = KvasirDataset_v2(data=train_data, albumentations_transform=albumentations_transform, blurring_transform=blurring_transform)
         val_dataset = KvasirDataset_v2(data=val_data, albumentations_transform=validation_transform, blurring_transform=blurring_transform)

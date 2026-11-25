@@ -9,7 +9,6 @@ Description: 这是默认设置,请设置`customMade`, 打开koroFileHeader查�
 import torch
 import math
 from torch.optim.lr_scheduler import LambdaLR
-from torch.optim import Adam
 from setup.data_loader import get_dataloader, set_seed
 from trainer import train_model_endo_depth
 from model.depthpolyp import build_depthpolyp
@@ -45,15 +44,8 @@ def lambda_setup(epoch, warmup_epochs=EPOCHS//10, cosine_epochs=EPOCHS, eta_min=
 
 uncertainty_weighted_loss = UncertaintyWeightedLoss().to(DEVICE)
 
-opt = Adam(
-   list(model.parameters()),
-   lr=learningrate,
-   betas=(0.9, 0.999),
-   eps=1e-8,
-   weight_decay=decay_rate,
-   amsgrad=None
-)
-
+# Note: this is torch.optim.Adam with coupled L2 weight decay (lr / EPOCHS = 5e-7),
+# applied to both the model and the uncertainty parameters. See README.
 opt = torch.optim.Adam([
     {'params': model.parameters(), 'lr': learningrate},
     {'params': uncertainty_weighted_loss.parameters(), 'lr': learningrate}  # 损失函数参数使用更高的学习率
@@ -65,7 +57,7 @@ scheduler = LambdaLR(opt, lr_lambda=lambda_setup)
 opt_name = opt.__class__.__name__
 scheduler_name = scheduler.__class__.__name__
 
-model_full_name = f"{dataset_name}_DepthPolpy_{learningrate:.0e}_{opt_name}_{scheduler_name}_woUncertainty"
+model_full_name = f"{dataset_name}_DepthPolpy_{learningrate:.0e}_{opt_name}_{scheduler_name}"
 print(model_full_name)
 
 train_model_endo_depth(model_full_name, model, train_dataset_loader, val_dataset_loader, uncertainty_weighted_loss, opt, scheduler, EPOCHS)
