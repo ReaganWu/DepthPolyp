@@ -113,16 +113,19 @@ The paper trains on Kvasir-SEG and evaluates cross-domain generalization on CVC-
 
 Pseudo-depth targets are generated using Depth-Anything v2 Small and used only during training. They are not required at inference time.
 
-Paper training settings:
+Training settings used by `main.py` in this repository:
 
 - Input resolution: 224 × 224
 - Encoder: MiT-B0
 - Epochs: 200
-- Optimizer: AdamW
-- Learning rate: 1e-4
-- Weight decay: 1e-4
+- Optimizer: `torch.optim.Adam` (betas 0.9/0.999, eps 1e-8) with coupled L2 weight decay
+- Learning rate: 1e-4 for both the model and the uncertainty parameters
+- Weight decay: `lr / EPOCHS` = 5e-7, applied to the model and the uncertainty parameters
 - Batch size: 16 on NVIDIA A100
-- Schedule: 10% warm-up followed by cosine annealing
+- Schedule: linear warm-up over the first 10% of epochs (starting from 0), then cosine annealing with `eta_min` factor 5e-7
+- Seed: 42 (`set_seed` in `setup/data_loader.py`); data-loader workers are not seeded separately, so runs are not bit-exact
+
+> **Note on the paper.** The paper (Sec. 4.3) states AdamW with weight decay 1e-4. That is a documentation error: the code above, Adam with weight decay 5e-7, is what this repository runs. See [Notes on paper vs. code](#notes-on-paper-vs-code).
 
 Synthetic degradation settings used for robustness-oriented training and evaluation:
 
@@ -303,7 +306,36 @@ python scripts/evaluate_depthpolyp.py \
   --weight checkpoints/DepthPolyp_Kvasir.pth \
   --datasets Kvasir Clinic Colon \
   --variants clean blur \
-  --split all
+  --split val
+```
+
+Use `--split val` for Kvasir: `--split all` also includes the 80% training images. `scripts/evaluate_depthpolyp.py` computes Dice, IoU and Recall per image and averages them over the dataset, binarizing at 0.3. The validation loop in `trainer.py` instead computes Dice over each batch of 16 images and averages over batches, so its numbers differ slightly.
+
+## Notes on paper vs. code
+
+These points answer questions raised in [issue #2](https://github.com/ReaganWu/DepthPolyp/issues/2).
+
+**Optimizer and weight decay.** See [Data and training protocol](#data-and-training-protocol). The code uses Adam with weight decay 5e-7, not AdamW with weight decay 1e-4 as the paper states.
+
+**Joint loss.** `setup/losses.py` implements
+
+```text
+L = L_dice / σ1² + L_smoothL1 / σ2² + log(σ1 · σ2),   σ1 = σ2 = 1 at init
+```
+
+while Eq. 17 of the paper writes `L_seg / (2σs²) + L_depth / (2σd²) + log σs + log σd`. Substituting `σ_code = √2 · σ_paper` turns the code's loss into the paper's plus the constant `log 2`, so both have the same minimizer. They differ in initialization (σ = 1 in the code corresponds to σ ≈ 0.707 in the paper's form) and therefore in the optimization path. The Dice loss sums over the whole batch with smoothing constant 1. Smooth-L1 uses PyTorch defaults (β = 1, mean reduction).
+
+**Kvasir split.** The split is 80/20 with `train_test_split(random_state=42)`. Earlier versions listed files with an unsorted `glob` before splitting, so the split depended on filesystem order and could not be reproduced on another machine. `setup/data_loader.py` now sorts files and pairs images and masks by file name, which gives the same split as `scripts/evaluate_depthpolyp.py --split val`. If `splits/kvasir_val.txt` is present, both scripts use the file names listed there as the validation set.
+
+**Pseudo-depth teacher.** Targets come from the Hugging Face model `depth-anything/Depth-Anything-V2-Small-hf` and are computed online during training. Training uses the teacher's prediction on the *degraded* input; validation uses its prediction on the clean input. Each depth map is min-max normalized to [0, 1] per image.
+
+**Model selection.** `trainer.py` saves the checkpoint with the best `0.7 × clean Dice + 0.3 × degraded Dice` on the Kvasir validation split.
+
+**Released checkpoint hashes (SHA-256).**
+
+```text
+DepthPolyp_Kvasir.pth   2bfad787ccc259b25bb28ee77ec39c4ae4a579aba971facc3e579aa8debd6257
+DepthPolyp_Kvasir.onnx  883ff8a825a5f51f59d46a9a2c2e9f0a505519140495dfa6800e6b48297c9f5b
 ```
 
 ## Repository structure

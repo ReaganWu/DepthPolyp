@@ -1,4 +1,5 @@
 import os
+import copy
 import datetime
 import numpy as np
 import torch
@@ -160,7 +161,7 @@ def train_model_endo_depth(
         if score > best_score:
             print(f"[BEST] Score improved {best_score:.4f} → {score:.4f}. Saving model.")
             best_score = score
-            best_model_params = model.state_dict()
+            best_model_params = copy.deepcopy(model.state_dict())
             torch.save(best_model_params, model_save_path)
 
         lr_scheduler.step()

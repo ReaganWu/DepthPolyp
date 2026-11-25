@@ -180,10 +180,20 @@ def evaluate_dataset(model, items, output_dir, device, image_size, threshold, tr
     }
 
 
-def apply_split(items, split, test_size, seed):
+SPLIT_FILES = {"Kvasir": "kvasir", "Clinic": "clinicdb", "Colon": "colondb"}
+
+
+def apply_split(items, split, test_size, seed, split_name=None):
     if split == "all":
         return items
-    train_items, val_items = train_test_split(items, test_size=test_size, random_state=seed)
+    split_file = REPO_ROOT / "splits" / f"{split_name}_val.txt" if split_name else None
+    if split_file is not None and split_file.is_file():
+        val_names = {line.strip() for line in split_file.read_text().splitlines() if line.strip()}
+        train_items = [it for it in items if Path(it[1]).name not in val_names]
+        val_items = [it for it in items if Path(it[1]).name in val_names]
+    else:
+        # Same sorted, stem-paired order as setup/data_loader.paired_split.
+        train_items, val_items = train_test_split(items, test_size=test_size, random_state=seed)
     if split == "train":
         return train_items
     if split == "val":
@@ -199,7 +209,7 @@ def build_items_for_dataset(name, cfg, polypgen_root, polypgen_sequences, split,
 
     pairs, missing = paired_items(cfg["image_dir"], cfg["mask_dir"])
     items = [(image.name, image, mask) for image, mask in pairs]
-    return apply_split(items, split, test_size, seed), missing
+    return apply_split(items, split, test_size, seed, SPLIT_FILES.get(name)), missing
 
 
 def parse_args():
